@@ -1,0 +1,436 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI_NEXUS // 2077</title>
+    <style>
+        /* 引入未来感字体 */
+        @import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@900&family=Rajdhani:wght@500;700&display=swap');
+
+        :root {
+            --primary: #00f2ff;
+            --secondary: #ff0055;
+            --glass: rgba(255, 255, 255, 0.05);
+            --border: rgba(255, 255, 255, 0.2);
+        }
+
+        body {
+            margin: 0;
+            background-color: #050505;
+            color: white;
+            font-family: 'Rajdhani', sans-serif;
+            overflow-x: hidden;
+            min-height: 100vh;
+        }
+
+        /* === 1. 动态流体背景 (Lava Lamp Effect) === */
+        .background-blob {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            z-index: -1;
+            background: #000;
+            overflow: hidden;
+        }
+        .blob {
+            position: absolute;
+            filter: blur(80px);
+            opacity: 0.6;
+            animation: float 20s infinite alternate;
+        }
+        .blob:nth-child(1) {
+            top: -10%; left: -10%; width: 50vw; height: 50vw;
+            background: purple;
+            animation-delay: 0s;
+        }
+        .blob:nth-child(2) {
+            bottom: -10%; right: -10%; width: 60vw; height: 60vw;
+            background: blue;
+            animation-delay: -5s;
+        }
+        .blob:nth-child(3) {
+            top: 40%; left: 40%; width: 40vw; height: 40vw;
+            background: #ff0055;
+            animation-delay: -10s;
+        }
+        @keyframes float {
+            0% { transform: translate(0, 0) scale(1); }
+            100% { transform: translate(30px, 50px) scale(1.1); }
+        }
+
+        /* === 2. 容器与标题 === */
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 60px 20px;
+            position: relative;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 60px;
+            position: relative;
+        }
+
+        /* 故障风文字效果 */
+        .glitch-title {
+            font-family: 'Montserrat', sans-serif;
+            font-size: 5rem;
+            font-weight: 900;
+            text-transform: uppercase;
+            position: relative;
+            color: white;
+            letter-spacing: -2px;
+            z-index: 1;
+        }
+        .glitch-title::before, .glitch-title::after {
+            content: attr(data-text);
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: #050505; /* 遮挡 */
+            opacity: 0.8;
+        }
+        .glitch-title::before {
+            color: var(--primary);
+            z-index: -1;
+            clip-path: polygon(0 0, 100% 0, 100% 45%, 0 45%);
+            animation: glitch-anim-1 3s infinite linear alternate-reverse;
+        }
+        .glitch-title::after {
+            color: var(--secondary);
+            z-index: -2;
+            clip-path: polygon(0 55%, 100% 55%, 100% 100%, 0 100%);
+            animation: glitch-anim-2 2.5s infinite linear alternate-reverse;
+        }
+
+        @keyframes glitch-anim-1 {
+            0% { transform: translate(0); }
+            20% { transform: translate(-2px, 2px); }
+            40% { transform: translate(-2px, -2px); }
+            60% { transform: translate(2px, 2px); }
+            80% { transform: translate(2px, -2px); }
+            100% { transform: translate(0); }
+        }
+        @keyframes glitch-anim-2 {
+            0% { transform: translate(0); }
+            20% { transform: translate(2px, -2px); }
+            40% { transform: translate(2px, 2px); }
+            60% { transform: translate(-2px, -2px); }
+            80% { transform: translate(-2px, 2px); }
+            100% { transform: translate(0); }
+        }
+
+        /* === 3. 极简悬浮搜索栏 === */
+        .search-container {
+            position: relative;
+            margin-bottom: 60px;
+            display: flex;
+            justify-content: center;
+        }
+        .glass-input {
+            width: 100%;
+            max-width: 600px;
+            background: rgba(255,255,255,0.08);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255,255,255,0.2);
+            border-radius: 100px;
+            padding: 20px 30px;
+            font-size: 1.2rem;
+            color: white;
+            outline: none;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.3);
+            transition: 0.4s;
+            display: flex;
+            align-items: center;
+        }
+        .glass-input:focus-within {
+            background: rgba(255,255,255,0.15);
+            border-color: var(--primary);
+            box-shadow: 0 0 30px rgba(0, 242, 255, 0.3);
+            transform: scale(1.02);
+        }
+        .glass-input input {
+            background: transparent;
+            border: none;
+            color: white;
+            font-size: 1.2rem;
+            width: 100%;
+            outline: none;
+            font-family: 'Rajdhani', sans-serif;
+            font-weight: bold;
+        }
+        .search-btn {
+            background: var(--primary);
+            color: black;
+            border: none;
+            border-radius: 50px;
+            padding: 10px 30px;
+            font-weight: 900;
+            cursor: pointer;
+            transition: 0.3s;
+            text-transform: uppercase;
+        }
+        .search-btn:hover {
+            background: white;
+            box-shadow: 0 0 20px white;
+        }
+
+        /* === 4. 3D 悬浮卡片 (核心特效) === */
+        #news-container {
+            display: grid;
+            gap: 40px;
+            perspective: 1000px; /* 3D 透视 */
+        }
+
+        .card-3d-wrap {
+            position: relative;
+            transform-style: preserve-3d;
+            cursor: pointer;
+        }
+
+        .card-3d {
+            background: rgba(20, 20, 20, 0.6);
+            border: 1px solid rgba(255,255,255,0.1);
+            backdrop-filter: blur(15px);
+            border-radius: 20px;
+            padding: 30px;
+            position: relative;
+            overflow: hidden;
+            transition: transform 0.1s ease-out; /* 快速响应鼠标 */
+            box-shadow: 0 20px 50px rgba(0,0,0,0.5);
+        }
+        
+        /* 镜面反光层 */
+        .card-sheen {
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: linear-gradient(105deg, transparent 40%, rgba(255,255,255,0.1) 45%, rgba(255,255,255,0.0) 50%);
+            z-index: 2;
+            pointer-events: none;
+            transform: translateX(-100%);
+            transition: 0.6s;
+        }
+        .card-3d-wrap:hover .card-sheen {
+            transform: translateX(100%);
+        }
+
+        /* 装饰性元素 */
+        .card-deco {
+            position: absolute;
+            top: 20px; right: 20px;
+            width: 10px; height: 10px;
+            background: var(--secondary);
+            border-radius: 50%;
+            box-shadow: 0 0 10px var(--secondary);
+        }
+
+        .news-title {
+            font-family: 'Montserrat', sans-serif;
+            font-size: 1.5rem;
+            font-weight: 800;
+            color: white;
+            text-decoration: none;
+            margin-bottom: 15px;
+            display: block;
+            line-height: 1.3;
+            text-shadow: 0 2px 10px rgba(0,0,0,0.5);
+            transition: 0.3s;
+        }
+        .news-title:hover {
+            color: var(--primary);
+        }
+
+        .summary {
+            font-size: 1.1rem;
+            line-height: 1.6;
+            color: rgba(255,255,255,0.8);
+            border-top: 1px solid rgba(255,255,255,0.1);
+            padding-top: 15px;
+            margin-top: 15px;
+        }
+
+        /* === 5. 核能加载动画 === */
+        #loader {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: #000;
+            z-index: 999;
+            display: flex; /* flex */
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+        }
+        .reactor {
+            width: 100px; height: 100px;
+            border: 4px solid rgba(0, 242, 255, 0.2);
+            border-top: 4px solid var(--primary);
+            border-bottom: 4px solid var(--secondary);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            box-shadow: 0 0 50px rgba(0, 242, 255, 0.2);
+            position: relative;
+        }
+        .reactor::before {
+            content: ''; position: absolute;
+            top: 10px; left: 10px; right: 10px; bottom: 10px;
+            border: 4px solid transparent;
+            border-left: 4px solid white;
+            border-radius: 50%;
+            animation: spin 0.5s reverse linear infinite;
+        }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+        
+        .loading-text {
+            margin-top: 30px;
+            font-family: 'Montserrat', sans-serif;
+            letter-spacing: 5px;
+            color: var(--primary);
+            font-weight: bold;
+            animation: blink 1s infinite;
+        }
+        @keyframes blink { 50% { opacity: 0.5; } }
+
+        /* 隐藏空状态 */
+        .empty-state { display: none; text-align: center; color: #666; font-size: 1.2rem; }
+
+    </style>
+</head>
+<body>
+
+    <!-- 背景流体 -->
+    <div class="background-blob">
+        <div class="blob"></div>
+        <div class="blob"></div>
+        <div class="blob"></div>
+    </div>
+
+    <!-- 加载层 -->
+    <div id="loader">
+        <div class="reactor"></div>
+        <div class="loading-text">INITIALIZING CORE</div>
+    </div>
+
+    <div class="container">
+        <header>
+            <div class="glitch-title" data-text="AI_NEXUS">AI_NEXUS</div>
+            <p style="letter-spacing: 5px; opacity: 0.7;">QUANTUM NEWS AGENT // v3.0</p>
+        </header>
+
+        <!-- 悬浮搜索 -->
+        <div class="search-container">
+            <div class="glass-input">
+                <input type="text" id="keyword" placeholder="INPUT KEYWORDS (e.g. 小米 华为)...">
+                <button class="search-btn" onclick="loadNews()">LAUNCH</button>
+            </div>
+        </div>
+
+        <div id="empty-msg" class="empty-state">
+            [ SYSTEM WARNING: NO DATA FOUND IN THIS DIMENSION ]
+        </div>
+
+        <!-- 3D 卡片容器 -->
+        <div id="news-container"></div>
+    </div>
+
+    <script>
+        // === 核心黑科技：3D Tilt 效果 (JS 物理计算) ===
+        function init3DTilt(element) {
+            const card = element.querySelector('.card-3d');
+            
+            element.addEventListener('mousemove', (e) => {
+                const rect = element.getBoundingClientRect();
+                const x = e.clientX - rect.left; // 鼠标在卡片内的x
+                const y = e.clientY - rect.top;  // 鼠标在卡片内的y
+                
+                // 计算中心点偏移量
+                const centerX = rect.width / 2;
+                const centerY = rect.height / 2;
+                
+                // 计算旋转角度 (最大 +/- 10度)
+                const rotateX = ((y - centerY) / centerY) * -5; 
+                const rotateY = ((x - centerX) / centerX) * 5;
+
+                card.style.transform = `perspective(1000px) rotateX(${rotateX}deg) rotateY(${rotateY}deg) scale(1.02)`;
+            });
+
+            // 鼠标移出时复原
+            element.addEventListener('mouseleave', () => {
+                card.style.transform = `perspective(1000px) rotateX(0deg) rotateY(0deg) scale(1)`;
+            });
+        }
+
+        // === 业务逻辑 ===
+        async function loadNews() {
+            const input = document.getElementById('keyword');
+            const container = document.getElementById('news-container');
+            const loader = document.getElementById('loader');
+            const emptyMsg = document.getElementById('empty-msg');
+
+            const tag = input.value.trim();
+            container.innerHTML = '';
+            emptyMsg.style.display = 'none';
+            loader.style.display = 'flex'; // 显示加载
+
+            try {
+                let url = 'http://127.0.0.1:5000/api/news';
+                if (tag) {
+                    url += `?tag=${encodeURIComponent(tag)}`;
+                }
+
+                const res = await fetch(url);
+                const json = await res.json();
+
+                // 稍微假装加载一会儿，让动画多飞一会儿
+                setTimeout(() => {
+                    loader.style.display = 'none';
+                    
+                    if (json.status === 'success') {
+                        json.data.forEach((item, index) => {
+                            // 创建卡片结构
+                            const wrap = document.createElement('div');
+                            wrap.className = 'card-3d-wrap';
+                            wrap.style.opacity = '0';
+                            wrap.style.animation = `fadeIn 0.5s forwards ${index * 0.1}s`;
+                            
+                            wrap.innerHTML = `
+                                <div class="card-3d">
+                                    <div class="card-sheen"></div>
+                                    <div class="card-deco"></div>
+                                    <a href="${item.link}" target="_blank" class="news-title">${item.title}</a>
+                                    <div class="summary">${item.summary}</div>
+                                </div>
+                            `;
+                            container.appendChild(wrap);
+                            
+                            // 绑定 3D 物理效果
+                            init3DTilt(wrap);
+                        });
+                        
+                        // 补充 fadeIn 动画
+                        const style = document.createElement('style');
+                        style.innerHTML = "@keyframes fadeIn { from { opacity:0; transform:translateY(30px); } to { opacity:1; transform:translateY(0); } }";
+                        document.head.appendChild(style);
+
+                    } else {
+                        emptyMsg.style.display = 'block';
+                    }
+                }, 800); // 假装延迟0.8秒
+
+            } catch (err) {
+                console.error(err);
+                loader.style.display = 'none';
+                alert("SYSTEM ERROR: Backend Offline");
+            }
+        }
+
+        // 绑定回车
+        document.getElementById('keyword').addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') loadNews();
+        });
+
+        // 启动
+        loadNews();
+
+    </script>
+</body>
+</html>
